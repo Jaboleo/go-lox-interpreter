@@ -10,15 +10,15 @@ import (
 var hadError bool = false
 
 func run(source string) {
-	scanner := newScanner(source)
-	tokens := scanner.scanTokens()
+	scanner := NewScanner(source)
+	tokens := scanner.ScanTokens()
 
 	for _, v := range tokens {
-		fmt.Println(v.toString())
+		fmt.Println(v.ToString())
 	}
 }
 
-func reportError(line int, message string) {
+func ReportError(line int, message string) {
 	report(line, "", message)
 }
 

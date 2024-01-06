@@ -14,7 +14,7 @@ type Scanner struct {
 	keywords map[string]TokenType
 }
 
-func newScanner(source string) Scanner {
+func NewScanner(source string) Scanner {
 
 	keywords := map[string]TokenType{
 		"and":    AND,
@@ -38,7 +38,7 @@ func newScanner(source string) Scanner {
 	return Scanner{source, make([]Token, 0), 0, 0, 1, keywords}
 }
 
-func (s *Scanner) scanTokens() []Token {
+func (s *Scanner) ScanTokens() []Token {
 	for !s.isAtEnd() {
 		s.start = s.current
 		s.scanToken()
@@ -122,7 +122,7 @@ func (s *Scanner) scanToken() {
 		} else if unicode.IsLetter(character) || unicode.IsDigit(character) {
 			s.identifier()
 		} else {
-			reportError(s.line, "Unexpected character.")
+			ReportError(s.line, "Unexpected character.")
 		}
 
 	}
@@ -165,7 +165,7 @@ func (s *Scanner) stringLit() {
 		s.advance()
 	}
 	if s.isAtEnd() {
-		reportError(s.line, "Unterminated string.")
+		ReportError(s.line, "Unterminated string.")
 		return
 	}
 	s.advance()
@@ -185,9 +185,9 @@ func (s *Scanner) number() {
 			s.advance()
 		}
 	}
-	v, err := strconv.ParseFloat(s.source[s.start:s.current], 6)
+	v, err := strconv.ParseFloat(s.source[s.start:s.current], 32)
 	if err != nil {
-		reportError(s.line, err.Error())
+		ReportError(s.line, err.Error())
 	}
 	s.addToken(NUMBER, v)
 }

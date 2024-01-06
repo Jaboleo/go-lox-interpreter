@@ -9,11 +9,11 @@ type Token struct {
 	line    int
 }
 
-func (t Token) toString() string {
+func (t Token) ToString() string {
 	return fmt.Sprintf("TYPE: %s, LITERAL: %v", getTokenName(t.ttype), t.literal)
 }
 
-// func (t Token) toString() string {
+// func (t Token) ToString() string {
 // 	return fmt.Sprintf("%d %s %v", t.ttype, t.lexeme, t.literal)
 // }
 
