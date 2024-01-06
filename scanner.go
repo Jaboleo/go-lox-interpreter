@@ -105,9 +105,15 @@ func (s *Scanner) scanToken() {
 				s.advance()
 			}
 		} else if s.match('*') {
+			s.advance()
 			for s.peek() != '*' && s.peekNext() != '/' && !s.isAtEnd() {
+				if s.peek() == '\n' {
+					s.line++
+				}
 				s.advance()
 			}
+			s.advance()
+			s.advance()
 		} else {
 			s.addToken(SLASH, nil)
 		}
@@ -164,7 +170,7 @@ func (s Scanner) peek() rune {
 }
 
 // Return next character
-func (s *Scanner) peekNext() rune {
+func (s Scanner) peekNext() rune {
 	if s.current+1 >= len(s.source) {
 		return '0'
 	}
