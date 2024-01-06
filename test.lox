@@ -1,1 +1,5 @@
+// single-line comment
+/* multi-line
+comment */
 2 + 1 == 3
+3 <= "hehe"

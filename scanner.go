@@ -104,6 +104,10 @@ func (s *Scanner) scanToken() {
 			for s.peek() != '\n' && !s.isAtEnd() {
 				s.advance()
 			}
+		} else if s.match('*') {
+			for s.peek() != '*' && s.peekNext() != '/' && !s.isAtEnd() {
+				s.advance()
+			}
 		} else {
 			s.addToken(SLASH, nil)
 		}
@@ -128,12 +132,6 @@ func (s *Scanner) scanToken() {
 	}
 }
 
-func (s *Scanner) advance() rune {
-	char := s.source[s.current]
-	s.current++
-	return rune(char)
-}
-
 func (s *Scanner) addToken(ttype TokenType, literal interface{}) {
 	text := s.source[s.start:s.current]
 	s.tokens = append(s.tokens, Token{ttype, text, literal, s.line})
@@ -150,11 +148,27 @@ func (s *Scanner) match(expected rune) bool {
 	return true
 }
 
+// Return current character and proceed
+func (s *Scanner) advance() rune {
+	char := s.source[s.current]
+	s.current++
+	return rune(char)
+}
+
+// Return current character without proceeding
 func (s Scanner) peek() rune {
 	if s.isAtEnd() {
 		return rune(0)
 	}
 	return rune(s.source[s.current])
+}
+
+// Return next character
+func (s *Scanner) peekNext() rune {
+	if s.current+1 >= len(s.source) {
+		return '0'
+	}
+	return rune(s.source[s.current+1])
 }
 
 func (s *Scanner) stringLit() {
@@ -190,13 +204,6 @@ func (s *Scanner) number() {
 		ReportError(s.line, err.Error())
 	}
 	s.addToken(NUMBER, v)
-}
-
-func (s *Scanner) peekNext() rune {
-	if s.current+1 >= len(s.source) {
-		return '0'
-	}
-	return rune(s.source[s.current+1])
 }
 
 func (s *Scanner) identifier() {
