@@ -1,6 +1,6 @@
 .PHONY: all build test lint clean
 
-all: format test lint build
+all: format build
 
 format:
 	go fmt

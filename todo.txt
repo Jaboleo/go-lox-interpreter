@@ -1,0 +1,3 @@
+- Przetestować obsługę błędów
+- Dodać testy jednostkowe (np. na Epxressions, Statements)
+- Potworzyć osobne paczki na scanner + parser itp.

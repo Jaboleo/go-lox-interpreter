@@ -1,0 +1,12 @@
+runFile(test.lox)
+NewEnvironment
+NewEnvironmentWithEnclosing,  &{<nil> map[a:global a b:global b c:global c]}
+New env  {0xc00008a1d0 map[]}
+Previous  {<nil> map[a:global a b:global b c:global c]} current  {0xc00008a1d0 map[]}
+NewEnvironmentWithEnclosing,  &{0xc00008a1d0 map[a:outer a b:outer b]}
+New env  {0xc00008a1d0 map[]}
+Previous  {0xc00008a1d0 map[a:outer a b:outer b]} current  {0xc00008a1d0 map[]}
+printing
+inner a
+done printing
+not found in environment , looking in outer &{0xc00008a1d0 map[a:inner a]} &{0xc00008a1d0 map[a:inner a]}

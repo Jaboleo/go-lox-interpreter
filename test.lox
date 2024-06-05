@@ -1,6 +1,8 @@
-// single-line comment
-/* multi-line
-comment */
-(2 + 1) == 3
-3 <= "hehe";
-32 != 33
+var a = 0;
+var temp;
+
+for (var b = 1; a < 10; b = temp + a) {
+  print a;
+  temp = a;
+  a = b;
+}

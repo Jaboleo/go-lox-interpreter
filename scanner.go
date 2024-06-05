@@ -47,7 +47,7 @@ func (s *Scanner) ScanTokens() []Token {
 	return s.tokens
 }
 
-func (s Scanner) isAtEnd() bool {
+func (s *Scanner) isAtEnd() bool {
 	return s.current >= len(s.source)
 }
 
@@ -162,7 +162,7 @@ func (s *Scanner) advance() rune {
 }
 
 // Return current character without proceeding
-func (s Scanner) peek() rune {
+func (s *Scanner) peek() rune {
 	if s.isAtEnd() {
 		return rune(0)
 	}
@@ -170,7 +170,7 @@ func (s Scanner) peek() rune {
 }
 
 // Return next character
-func (s Scanner) peekNext() rune {
+func (s *Scanner) peekNext() rune {
 	if s.current+1 >= len(s.source) {
 		return '0'
 	}

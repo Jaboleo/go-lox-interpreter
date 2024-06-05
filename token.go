@@ -13,10 +13,6 @@ func (t Token) ToString() string {
 	return fmt.Sprintf("TYPE: %s, LITERAL: %v", getTokenName(t.ttype), t.literal)
 }
 
-// func (t Token) ToString() string {
-// 	return fmt.Sprintf("%d %s %v", t.ttype, t.lexeme, t.literal)
-// }
-
 var tokenNames = []string{
 	"LEFT_PAREN", "RIGHT_PAREN", "LEFT_BRACE", "RIGHT_BRACE",
 	"COMMA", "DOT", "MINUS", "PLUS", "SEMICOLON", "SLASH", "STAR",

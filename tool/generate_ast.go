@@ -63,8 +63,15 @@ func main() {
 		os.Exit(64)
 	}
 	outputDir := args[1]
+
 	defineAst(outputDir, "Expr", []string{"Binary   : left Expr, operator Token, right Expr",
 		"Grouping : expression Expr",
 		"Literal  : value interface{}",
 		"Unary    : operator Token, right Expr"})
+
+	defineAst(outputDir, "Stmt", []string{
+		"Expression : Expr expression",
+		"Print      : Expr expression"})
 }
+
+// TODO poprawić obsługę błędów

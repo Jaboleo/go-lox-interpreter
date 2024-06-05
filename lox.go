@@ -8,14 +8,25 @@ import (
 )
 
 var hadError bool = false
+var hadRuntimeError bool = false
 
 func run(source string) {
 	scanner := NewScanner(source)
 	tokens := scanner.ScanTokens()
+	parser := NewParser(tokens)
+	statements := parser.Parse()
+	interpreter := newInterpreter()
 
-	for _, v := range tokens {
-		fmt.Println(v.ToString())
+	if hadError {
+		os.Exit(65)
 	}
+	if hadRuntimeError {
+		os.Exit(70)
+	}
+
+	// printer := AstPrinter{}
+	// fmt.Println(printer.Print(expression))
+	interpreter.interpret(statements)
 }
 
 func ReportError(line int, message string) {
@@ -25,6 +36,19 @@ func ReportError(line int, message string) {
 func report(line int, where string, message string) {
 	log.Fatalf("[line %d] Error%s: %s", line, where, message)
 	hadError = true
+}
+
+func loxError(token Token, message string) {
+	if token.ttype == EOF {
+		report(token.line, " at end", message)
+	} else {
+		report(token.line, " at '"+token.lexeme+"'", message)
+	}
+}
+
+func runtimeError(err RuntimeError) {
+	fmt.Printf(err.message + "\n[line" + fmt.Sprintf("%f", err.token.line) + "]")
+	hadRuntimeError = true
 }
 
 func runFile(path string) {
