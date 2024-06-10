@@ -3,17 +3,25 @@ package main
 import (
 	"fmt"
 	"log"
-	"reflect"
-	"strconv"
 )
 
+type Return struct {
+	value any
+}
+
 type Interpreter struct {
+	globals     Environment
 	environment Environment
 }
 
 func newInterpreter() Interpreter {
+	globals := NewEnvironment()
+
+	globals.define("clock", ClockFunc{})
+
 	return Interpreter{
-		environment: NewEnvironment(),
+		globals:     globals,
+		environment: globals,
 	}
 }
 
@@ -23,14 +31,14 @@ func (i *Interpreter) interpret(statements []Stmt) {
 	}
 }
 
-func (i *Interpreter) visitExpr_Binary(e Expr_Binary) interface{} {
+func (i *Interpreter) visitExpr_Binary(e Expr_Binary) any {
 	left := i.evaluate(e.left)
 	right := i.evaluate(e.right)
 
 	switch e.operator.ttype {
 	case MINUS:
 		i.checkNumberOperand(e.operator, right)
-		return i.castToFloat(left) - i.castToFloat(right)
+		return castToFloat(left) - castToFloat(right)
 	case PLUS:
 		if valLeft, okLeft := left.(float64); okLeft {
 			if valRight, okRight := right.(float64); okRight {
@@ -48,125 +56,72 @@ func (i *Interpreter) visitExpr_Binary(e Expr_Binary) interface{} {
 
 	case SLASH:
 		i.checkNumberOperands(e.operator, left, right)
-		return i.castToFloat(left) / i.castToFloat(right)
+		return castToFloat(left) / castToFloat(right)
 	case STAR:
 		i.checkNumberOperands(e.operator, left, right)
-		return i.castToFloat(left) * i.castToFloat(right)
+		return castToFloat(left) * castToFloat(right)
 	case GREATER:
 		i.checkNumberOperands(e.operator, left, right)
-		return i.castToFloat(left) > i.castToFloat(right)
+		return castToFloat(left) > castToFloat(right)
 	case GREATER_EQUAL:
 		i.checkNumberOperands(e.operator, left, right)
-		return i.castToFloat(left) >= i.castToFloat(right)
+		return castToFloat(left) >= castToFloat(right)
 	case LESS:
 		i.checkNumberOperands(e.operator, left, right)
-		return i.castToFloat(left) < i.castToFloat(right)
+		return castToFloat(left) < castToFloat(right)
 	case LESS_EQUAL:
 		i.checkNumberOperands(e.operator, left, right)
-		return i.castToFloat(left) <= i.castToFloat(right)
+		return castToFloat(left) <= castToFloat(right)
 	case BANG_EQUAL:
 		i.checkNumberOperands(e.operator, left, right)
-		return !i.isEqual(left, right)
+		return !isEqual(left, right)
 	case EQUAL_EQUAL:
 		i.checkNumberOperands(e.operator, left, right)
-		return i.isEqual(left, right)
+		return isEqual(left, right)
 	default:
 		return nil
 	}
 	return nil
 }
 
-func (i *Interpreter) visitExpr_Call(e Expr_Call) interface{} {
+func (i *Interpreter) visitExpr_Call(e Expr_Call) any {
 	callee := i.evaluate(e.callee)
-	arguments := []interface{}{}
+	arguments := []any{}
 	for _, argument := range e.arguments {
 		arguments = append(arguments, argument)
 	}
 
-	if function, ok := callee.(LoxCallable); ok {
+	if function, ok := callee.(LoxFunction); ok {
 		if len(arguments) != function.arity() {
-			log.Fatalf("Expected %w arguments but got %w.", function.arity(), len(arguments))
+			log.Fatalf("Expected %d arguments but got %d.", function.arity(), len(arguments))
 		}
-		return function.call(i, arguments)
+		return function.call(*i, arguments)
 	}
+	log.Fatal("not a LoxCallable")
 	return nil
 }
 
-func (i *Interpreter) visitExpr_Grouping(e Expr_Grouping) interface{} {
+func (i *Interpreter) visitExpr_Grouping(e Expr_Grouping) any {
 	return i.evaluate(e.expression)
 }
 
-func (i *Interpreter) visitExpr_Literal(e Expr_Literal) interface{} {
+func (i *Interpreter) visitExpr_Literal(e Expr_Literal) any {
 	return e.value
 }
 
-func (i *Interpreter) visitExpr_Unary(e Expr_Unary) interface{} {
+func (i *Interpreter) visitExpr_Unary(e Expr_Unary) any {
 	right := i.evaluate(e.right)
 	switch e.operator.ttype {
 	case BANG:
-		return !i.isTruthy(right)
+		return !isTruthy(right)
 	case MINUS:
-		return -i.castToFloat(right)
+		return -castToFloat(right)
 	default:
 		return nil
 	}
 }
 
-func (i *Interpreter) isTruthy(object interface{}) bool {
-	if object == nil {
-		return false
-	}
-	switch v := object.(type) {
-	case bool:
-		return v
-	case int, int8, int16, int32, int64:
-		return reflect.ValueOf(object).Int() != 0
-	case uint, uint8, uint16, uint32, uint64:
-		return reflect.ValueOf(object).Uint() != 0
-	case float32, float64:
-		return reflect.ValueOf(object).Float() != 0
-	case string:
-		return v != ""
-		// Default case, return true
-	default:
-		// For any other type, you can define your own truthy logic
-		return true
-	}
-}
-
-func (i *Interpreter) isEqual(a interface{}, b interface{}) bool {
-	if a == nil && b == nil {
-		return true
-	}
-	if a == nil {
-		return false
-	}
-	return a == b
-}
-
-func (i *Interpreter) castToFloat(a interface{}) float64 {
-	if val, ok := a.(float64); ok {
-		// If `right` is already a float64, simply negate it and return
-		return val
-	}
-	if val, ok := a.(int); ok {
-		return float64(val)
-	}
-	if val, ok := a.(string); ok {
-		// Convert the string to float64 using strconv.ParseFloat()
-		floatValue, err := strconv.ParseFloat(val, 64)
-		if err != nil {
-			// Handle error if conversion fails
-			// For simplicity, let's return 0 in case of error
-			return 0
-		}
-		return floatValue
-		// Return the negation of the float64 value
-	}
-	return 0
-}
-
-func (i *Interpreter) checkNumberOperand(operator Token, operand interface{}) {
+func (i *Interpreter) checkNumberOperand(operator Token, operand any) {
 	if _, ok := operand.(float64); ok {
 		return
 	}
@@ -176,7 +131,7 @@ func (i *Interpreter) checkNumberOperand(operator Token, operand interface{}) {
 
 }
 
-func (i *Interpreter) checkNumberOperands(operator Token, left interface{}, right interface{}) {
+func (i *Interpreter) checkNumberOperands(operator Token, left any, right any) {
 	if _, ok := left.(float64); ok {
 		if _, ok := right.(float64); ok {
 			return
@@ -188,7 +143,7 @@ func (i *Interpreter) checkNumberOperands(operator Token, left interface{}, righ
 
 }
 
-// func (i *Interpreter) castToString(object interface{}) string {
+// func (i *Interpreter) castToString(object any) string {
 // 	if object == nil {
 // 		return "nil"
 // 	}
@@ -208,7 +163,7 @@ func (i *Interpreter) checkNumberOperands(operator Token, left interface{}, righ
 // 	return "nil"
 // }
 
-func (i *Interpreter) evaluate(expr Expr) interface{} {
+func (i *Interpreter) evaluate(expr Expr) any {
 	return expr.accept(i)
 }
 
@@ -241,8 +196,13 @@ func (i *Interpreter) visitStmt_Expression(stmt Stmt_Expression) {
 	i.evaluate(stmt.expression)
 }
 
+func (i *Interpreter) visitStmt_Function(stmt Stmt_Function) {
+	function := LoxFunction{stmt, i.environment}
+	i.environment.define(stmt.name.lexeme, function)
+}
+
 func (i *Interpreter) visitStmt_If(stmt Stmt_If) {
-	if i.isTruthy(i.evaluate(stmt.condition)) {
+	if isTruthy(i.evaluate(stmt.condition)) {
 		i.execute(stmt.thenBranch)
 	} else if stmt.elseBranch != nil {
 		i.execute(stmt.elseBranch)
@@ -254,38 +214,46 @@ func (i *Interpreter) visitStmt_Print(stmt Stmt_Print) {
 	fmt.Println(value)
 }
 
+func (i *Interpreter) visitStmt_Return(stmt Stmt_Return) {
+	var value any
+	if stmt.value != nil {
+		value = i.evaluate(stmt.value)
+	}
+	panic(Return{value})
+}
+
 func (i *Interpreter) visitStmt_While(stmt Stmt_While) {
-	for i.isTruthy(i.evaluate(stmt.condition)) {
+	for isTruthy(i.evaluate(stmt.condition)) {
 		i.execute(stmt.body)
 	}
 }
 
 func (i *Interpreter) visitStmt_Var(stmt Stmt_Var) {
-	var value interface{}
+	var value any
 	if stmt.initializer != nil {
 		value = i.evaluate(stmt.initializer)
 	}
 	i.environment.define(stmt.name.lexeme, value)
 }
 
-func (i *Interpreter) visitExpr_Assign(expr Expr_Assign) interface{} {
+func (i *Interpreter) visitExpr_Assign(expr Expr_Assign) any {
 	value := i.evaluate(expr.value)
 	i.environment.assign(expr.name, value)
 	return value
 }
 
-func (i *Interpreter) visitExpr_Variable(expr Expr_Variable) interface{} {
+func (i *Interpreter) visitExpr_Variable(expr Expr_Variable) any {
 	return i.environment.get(expr.name)
 }
 
-func (i *Interpreter) visitExpr_Logical(expr Expr_Logical) interface{} {
+func (i *Interpreter) visitExpr_Logical(expr Expr_Logical) any {
 	left := i.evaluate(expr.left)
 
 	if expr.operator.ttype == OR {
-		if i.isTruthy(left) {
+		if isTruthy(left) {
 			return left
 		} else {
-			if !i.isTruthy(left) {
+			if !isTruthy(left) {
 				return left
 			}
 		}

@@ -5,12 +5,14 @@ type Stmt interface {
 }
 
 type StmtVisitor interface {
-	visitStmt_Expression(e Stmt_Expression)
-	visitStmt_Print(e Stmt_Print)
-	visitStmt_Var(e Stmt_Var)
 	visitStmt_Block(e Stmt_Block)
+	visitStmt_Expression(e Stmt_Expression)
+	visitStmt_Function(e Stmt_Function)
 	visitStmt_If(e Stmt_If)
+	visitStmt_Print(e Stmt_Print)
+	visitStmt_Return(e Stmt_Return)
 	visitStmt_While(e Stmt_While)
+	visitStmt_Var(e Stmt_Var)
 }
 
 type Stmt_Expression struct {
@@ -21,12 +23,31 @@ func (e Stmt_Expression) accept(visitor StmtVisitor) {
 	visitor.visitStmt_Expression(e)
 }
 
+type Stmt_Function struct {
+	name   Token
+	params []Token
+	body   []Stmt
+}
+
+func (e Stmt_Function) accept(visitor StmtVisitor) {
+	visitor.visitStmt_Function(e)
+}
+
 type Stmt_Print struct {
 	expression Expr
 }
 
 func (e Stmt_Print) accept(visitor StmtVisitor) {
 	visitor.visitStmt_Print(e)
+}
+
+type Stmt_Return struct {
+	keyword Token
+	value   Expr
+}
+
+func (e Stmt_Return) accept(visitor StmtVisitor) {
+	visitor.visitStmt_Return(e)
 }
 
 type Stmt_Var struct {

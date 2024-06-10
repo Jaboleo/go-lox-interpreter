@@ -73,6 +73,9 @@ func (p *Parser) expression() Expr {
 }
 
 func (p *Parser) declaration() Stmt {
+	if p.match(FUN) {
+		return p.function("function")
+	}
 	if p.match(VAR) {
 		return p.varDeclaration()
 	}
@@ -141,7 +144,7 @@ func (p *Parser) unary() (Expr, error) {
 		right, _ := p.unary()
 		return &Expr_Unary{operator, right}, nil
 	}
-	return p.call()
+	return p.call(), nil
 }
 
 func (p *Parser) call() Expr {
@@ -157,6 +160,7 @@ func (p *Parser) call() Expr {
 			break
 		}
 	}
+	return expr
 }
 
 func (p *Parser) finishCall(callee Expr) Expr {
@@ -231,6 +235,9 @@ func (p *Parser) statement() Stmt {
 	if p.match(PRINT) {
 		return p.printStatement()
 	}
+	if p.match(RETURN) {
+		return p.returnStatement()
+	}
 	if p.match(WHILE) {
 		return p.whileStatement()
 	}
@@ -261,6 +268,16 @@ func (p *Parser) printStatement() Stmt_Print {
 	value := p.expression()
 	p.consume(SEMICOLON, "Expect ';' after value.")
 	return Stmt_Print{value}
+}
+
+func (p *Parser) returnStatement() Stmt_Return {
+	keyword := p.previous()
+	var value Expr
+	if !p.check(SEMICOLON) {
+		value = p.expression()
+	}
+	p.consume(SEMICOLON, "Expect ';' after return value.")
+	return Stmt_Return{keyword, value}
 }
 
 func (p *Parser) whileStatement() Stmt_While {
@@ -321,6 +338,34 @@ func (p *Parser) expressionStatement() Stmt_Expression {
 	expr := p.expression()
 	p.consume(SEMICOLON, "Expect ';' after expression.")
 	return Stmt_Expression{expr}
+}
+
+func (p *Parser) function(kind string) Stmt_Function {
+	name, err := p.consume(IDENTIFIER, fmt.Sprintf("Expect %s name.", kind))
+	if err != nil {
+		log.Fatalf("%w at varDeclaration()", err)
+	}
+	p.consume(LEFT_PAREN, fmt.Sprintf("Expect ( after %s name.", kind))
+	parameters := []Token{}
+	if !p.check(RIGHT_PAREN) {
+		for {
+			if len(parameters) >= 255 {
+				log.Fatal("Can't have more than 255 parameters.")
+			}
+			param, err := p.consume(IDENTIFIER, "Expect parameter name.")
+			if err != nil {
+				log.Fatalf("%w at varDeclaration()", err)
+			}
+			parameters = append(parameters, *param)
+			if !p.match(COMMA) {
+				break
+			}
+		}
+	}
+	p.consume(RIGHT_PAREN, "Expect ')' after parameters.")
+	p.consume(LEFT_BRACE, fmt.Sprintf("Expect { before %w body.", kind))
+	body := p.block()
+	return Stmt_Function{*name, parameters, body}
 }
 
 func (p *Parser) block() []Stmt {

@@ -1,8 +1,10 @@
-var a = 0;
-var temp;
-
-for (var b = 1; a < 10; b = temp + a) {
-  print a;
-  temp = a;
-  a = b;
+fun count(n) {
+  while (n < 100) {
+    if (n == 3) return n; // <--
+    print n;
+    n = n + 1;
+  }
 }
+
+var result = count(1);
+print result;
