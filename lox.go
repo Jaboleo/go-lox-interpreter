@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/kljablon/golox/ast"
+	"github.com/kljablon/golox/interpret"
+	"github.com/kljablon/golox/utils"
 )
 
 var hadError bool = false
@@ -17,7 +19,7 @@ func run(source string) {
 	tokens := scanner.ScanTokens()
 	parser := NewParser(tokens)
 	statements := parser.Parse()
-	interpreter := newInterpreter()
+	interpreter := interpret.NewInterpreter()
 
 	if hadError {
 		os.Exit(65)
@@ -31,7 +33,7 @@ func run(source string) {
 
 	// printer := AstPrinter{}
 	// fmt.Println(printer.Print(expression))
-	interpreter.interpret(statements)
+	interpreter.Interpret(statements)
 }
 
 func ReportError(line int, message string) {
@@ -51,8 +53,8 @@ func loxError(token ast.Token, message string) {
 	}
 }
 
-func runtimeError(err RuntimeError) {
-	fmt.Printf(err.message + "\n[line" + fmt.Sprintf("%d", err.token.Line) + "]")
+func runtimeError(err utils.RuntimeError) {
+	fmt.Printf(err.Message + "\n[line" + fmt.Sprintf("%d", err.Token.Line) + "]")
 	hadRuntimeError = true
 }
 

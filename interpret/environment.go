@@ -1,9 +1,10 @@
-package main
+package interpret
 
 import (
 	"log"
 
 	"github.com/kljablon/golox/ast"
+	"github.com/kljablon/golox/utils"
 )
 
 type Environment struct {
@@ -59,7 +60,7 @@ func (e *Environment) get(name ast.Token) any {
 		return e.enclosing.get(name)
 	}
 
-	err := NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'.")
+	err := utils.NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'.")
 	// Print the error message.
 	log.Fatal(err.Error())
 	return nil // This return is not necessary because log.Fatal exits the program, but added for clarity.
@@ -76,7 +77,7 @@ func (e *Environment) assign(name ast.Token, value any) {
 		return
 	}
 
-	err := NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'.")
+	err := utils.NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'.")
 	// Print the error message.
 	log.Fatal(err.Error())
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/kljablon/golox/ast"
+	"github.com/kljablon/golox/utils"
 )
 
 type Parser struct {
@@ -402,7 +403,7 @@ func (p *Parser) assignment() ast.Expr {
 			name := expr.Name
 			return &ast.Expr_Assign{Name: name, Value: value}
 		}
-		err := NewRuntimeError(equals, "Invalid assignment target.")
+		err := utils.NewRuntimeError(equals, "Invalid assignment target.")
 		log.Fatal(err)
 	}
 	return expr

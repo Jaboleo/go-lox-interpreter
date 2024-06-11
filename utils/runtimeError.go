@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"fmt"
@@ -7,13 +7,13 @@ import (
 )
 
 type RuntimeError struct {
-	token   ast.Token
-	message string
+	Token   ast.Token
+	Message string
 }
 
 // Error method to implement the error interface.
 func (r RuntimeError) Error() string {
-	return fmt.Sprintf("[line %d] Error at '%s': %s", r.token.Line, r.token.Lexeme, r.message)
+	return fmt.Sprintf("[line %d] Error at '%s': %s", r.Token.Line, r.Token.Lexeme, r.Message)
 }
 
 // Constructor-like function to create a new RuntimeError.

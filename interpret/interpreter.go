@@ -1,4 +1,4 @@
-package main
+package interpret
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ type Interpreter struct {
 	locals      map[ast.Expr]int
 }
 
-func newInterpreter() Interpreter {
+func NewInterpreter() Interpreter {
 	globals := NewEnvironment()
 
 	globals.define("clock", ClockFunc{})
@@ -31,7 +31,7 @@ func newInterpreter() Interpreter {
 	}
 }
 
-func (i *Interpreter) interpret(statements []ast.Stmt) {
+func (i *Interpreter) Interpret(statements []ast.Stmt) {
 	for _, statement := range statements {
 		i.execute(statement)
 	}
@@ -56,7 +56,7 @@ func (i *Interpreter) VisitExpr_Binary(e ast.Expr_Binary) any {
 				return valLeft + valRight
 			}
 		}
-		err := NewRuntimeError(e.Operator, "Operands must be two numbers or two strings.")
+		err := utils.NewRuntimeError(e.Operator, "Operands must be two numbers or two strings.")
 		// Print the error message.
 		fmt.Println(err.Error())
 
@@ -131,7 +131,7 @@ func (i *Interpreter) checkNumberOperand(operator ast.Token, operand any) {
 	if _, ok := operand.(float64); ok {
 		return
 	}
-	err := NewRuntimeError(operator, "Operand must be a number.")
+	err := utils.NewRuntimeError(operator, "Operand must be a number.")
 	// Print the error message.
 	log.Fatal(err.Error())
 
@@ -143,7 +143,7 @@ func (i *Interpreter) checkNumberOperands(operator ast.Token, left any, right an
 			return
 		}
 	}
-	err := NewRuntimeError(operator, "Operands must be numbers.")
+	err := utils.NewRuntimeError(operator, "Operands must be numbers.")
 	// Print the error message.
 	fmt.Println(err.Error())
 
@@ -180,7 +180,7 @@ func (i *Interpreter) execute(stmt ast.Stmt) {
 	stmt.Accept(i)
 }
 
-func (i *Interpreter) resolve(expr ast.Expr, depth int) {
+func (i *Interpreter) Resolve(expr ast.Expr, depth int) {
 	i.locals[expr] = depth
 }
 

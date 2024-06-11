@@ -6,10 +6,11 @@ import (
 	"log"
 
 	"github.com/kljablon/golox/ast"
+	"github.com/kljablon/golox/interpret"
 )
 
 type Resolver struct {
-	interpreter     Interpreter
+	interpreter     interpret.Interpreter
 	scopes          []map[string]bool
 	currentFunction FunctionType
 }
@@ -22,7 +23,7 @@ const (
 )
 
 func newResover() Resolver {
-	interpreter := newInterpreter()
+	interpreter := interpret.NewInterpreter()
 	scopes := []map[string]bool{}
 	return Resolver{
 		interpreter, scopes, NONE,
@@ -165,7 +166,7 @@ func (r *Resolver) resolveFunction(function ast.Stmt_Function, f_type FunctionTy
 func (r *Resolver) resolveLocal(expr ast.Expr, name ast.Token) {
 	for i := range r.scopes {
 		if _, ok := r.scopes[i][name.Lexeme]; ok {
-			r.interpreter.resolve(expr, len(r.scopes)-1-i)
+			r.interpreter.Resolve(expr, len(r.scopes)-1-i)
 		}
 	}
 }
