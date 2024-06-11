@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/kljablon/golox/ast"
+	"github.com/kljablon/golox/utils"
 )
 
 type Return struct {
@@ -43,7 +44,7 @@ func (i *Interpreter) VisitExpr_Binary(e ast.Expr_Binary) any {
 	switch e.Operator.TokenType {
 	case ast.MINUS:
 		i.checkNumberOperand(e.Operator, right)
-		return castToFloat(left) - castToFloat(right)
+		return utils.CastToFloat(left) - utils.CastToFloat(right)
 	case ast.PLUS:
 		if valLeft, okLeft := left.(float64); okLeft {
 			if valRight, okRight := right.(float64); okRight {
@@ -61,28 +62,28 @@ func (i *Interpreter) VisitExpr_Binary(e ast.Expr_Binary) any {
 
 	case ast.SLASH:
 		i.checkNumberOperands(e.Operator, left, right)
-		return castToFloat(left) / castToFloat(right)
+		return utils.CastToFloat(left) / utils.CastToFloat(right)
 	case ast.STAR:
 		i.checkNumberOperands(e.Operator, left, right)
-		return castToFloat(left) * castToFloat(right)
+		return utils.CastToFloat(left) * utils.CastToFloat(right)
 	case ast.GREATER:
 		i.checkNumberOperands(e.Operator, left, right)
-		return castToFloat(left) > castToFloat(right)
+		return utils.CastToFloat(left) > utils.CastToFloat(right)
 	case ast.GREATER_EQUAL:
 		i.checkNumberOperands(e.Operator, left, right)
-		return castToFloat(left) >= castToFloat(right)
+		return utils.CastToFloat(left) >= utils.CastToFloat(right)
 	case ast.LESS:
 		i.checkNumberOperands(e.Operator, left, right)
-		return castToFloat(left) < castToFloat(right)
+		return utils.CastToFloat(left) < utils.CastToFloat(right)
 	case ast.LESS_EQUAL:
 		i.checkNumberOperands(e.Operator, left, right)
-		return castToFloat(left) <= castToFloat(right)
+		return utils.CastToFloat(left) <= utils.CastToFloat(right)
 	case ast.BANG_EQUAL:
 		i.checkNumberOperands(e.Operator, left, right)
-		return !isEqual(left, right)
+		return !utils.IsEqual(left, right)
 	case ast.EQUAL_EQUAL:
 		i.checkNumberOperands(e.Operator, left, right)
-		return isEqual(left, right)
+		return utils.IsEqual(left, right)
 	default:
 		return nil
 	}
@@ -118,9 +119,9 @@ func (i *Interpreter) VisitExpr_Unary(e ast.Expr_Unary) any {
 	right := i.evaluate(e.Right)
 	switch e.Operator.TokenType {
 	case ast.BANG:
-		return !isTruthy(right)
+		return !utils.IsTruthy(right)
 	case ast.MINUS:
-		return -castToFloat(right)
+		return -utils.CastToFloat(right)
 	default:
 		return nil
 	}
@@ -211,7 +212,7 @@ func (i *Interpreter) VisitStmt_Function(stmt ast.Stmt_Function) {
 }
 
 func (i *Interpreter) VisitStmt_If(stmt ast.Stmt_If) {
-	if isTruthy(i.evaluate(stmt.Condition)) {
+	if utils.IsTruthy(i.evaluate(stmt.Condition)) {
 		i.execute(stmt.ThenBranch)
 	} else if stmt.ElseBranch != nil {
 		i.execute(stmt.ElseBranch)
@@ -232,7 +233,7 @@ func (i *Interpreter) VisitStmt_Return(stmt ast.Stmt_Return) {
 }
 
 func (i *Interpreter) VisitStmt_While(stmt ast.Stmt_While) {
-	for isTruthy(i.evaluate(stmt.Condition)) {
+	for utils.IsTruthy(i.evaluate(stmt.Condition)) {
 		i.execute(stmt.Body)
 	}
 }
@@ -273,10 +274,10 @@ func (i *Interpreter) VisitExpr_Logical(expr ast.Expr_Logical) any {
 	left := i.evaluate(expr.Left)
 
 	if expr.Operator.TokenType == ast.OR {
-		if isTruthy(left) {
+		if utils.IsTruthy(left) {
 			return left
 		} else {
-			if !isTruthy(left) {
+			if !utils.IsTruthy(left) {
 				return left
 			}
 		}

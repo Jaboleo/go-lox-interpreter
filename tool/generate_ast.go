@@ -17,7 +17,7 @@ func defineType(f *os.File, baseName string, className string, fieldList string)
 	}
 	f.WriteString("}\n")
 	f.WriteString("\n")
-	f.WriteString("func (e *" + typeName + ") accept(Visitor Visitor) interface{}{\nreturn Visitor.Visit" + typeName + "(e)\n}\n")
+	f.WriteString("func (e *" + typeName + ") accept(Visitor Visitor) any{\nreturn Visitor.Visit" + typeName + "(e)\n}\n")
 }
 
 func defineVisitor(f *os.File, baseName string, types []string) {
@@ -26,7 +26,7 @@ func defineVisitor(f *os.File, baseName string, types []string) {
 	for _, v := range types {
 		typeName := strings.Trim(strings.Split(v, ":")[0], " ")
 		typeName = baseName + "_" + typeName
-		f.WriteString("Visit" + typeName + "(e *" + typeName + ")" + " interface{}\n")
+		f.WriteString("Visit" + typeName + "(e *" + typeName + ")" + " any\n")
 	}
 	f.WriteString("}\n")
 	f.WriteString("\n")
@@ -45,7 +45,7 @@ func defineAst(outputDir string, baseName string, types []string) {
 
 	f.WriteString("package main\n")
 	f.WriteString("\n")
-	f.WriteString("type Expr interface{\naccept(Visitor Visitor) interface{}\n}\n\n")
+	f.WriteString("type Expr interface{\naccept(Visitor Visitor) any\n}\n\n")
 
 	defineVisitor(f, baseName, types)
 
@@ -66,7 +66,7 @@ func main() {
 
 	defineAst(outputDir, "Expr", []string{"Binary   : left Expr, operator Token, right Expr",
 		"Grouping : expression Expr",
-		"Literal  : value interface{}",
+		"Literal  : value any",
 		"Unary    : operator Token, right Expr"})
 
 	defineAst(outputDir, "Stmt", []string{

@@ -1,11 +1,11 @@
-package main
+package utils
 
 import (
 	"reflect"
 	"strconv"
 )
 
-func isTruthy(object interface{}) bool {
+func IsTruthy(object any) bool {
 	if object == nil {
 		return false
 	}
@@ -27,7 +27,7 @@ func isTruthy(object interface{}) bool {
 	}
 }
 
-func isEqual(a interface{}, b interface{}) bool {
+func IsEqual(a any, b any) bool {
 	if a == nil && b == nil {
 		return true
 	}
@@ -37,7 +37,7 @@ func isEqual(a interface{}, b interface{}) bool {
 	return a == b
 }
 
-func castToFloat(a interface{}) float64 {
+func CastToFloat(a any) float64 {
 	if val, ok := a.(float64); ok {
 		// If `right` is already a float64, simply negate it and return
 		return val
