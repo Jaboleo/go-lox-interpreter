@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+
+	"github.com/kljablon/golox/ast"
 )
 
 type Return struct {
@@ -12,6 +14,7 @@ type Return struct {
 type Interpreter struct {
 	globals     Environment
 	environment Environment
+	locals      map[ast.Expr]int
 }
 
 func newInterpreter() Interpreter {
@@ -19,27 +22,29 @@ func newInterpreter() Interpreter {
 
 	globals.define("clock", ClockFunc{})
 
+	locals := make(map[ast.Expr]int)
 	return Interpreter{
 		globals:     globals,
 		environment: globals,
+		locals:      locals,
 	}
 }
 
-func (i *Interpreter) interpret(statements []Stmt) {
+func (i *Interpreter) interpret(statements []ast.Stmt) {
 	for _, statement := range statements {
 		i.execute(statement)
 	}
 }
 
-func (i *Interpreter) visitExpr_Binary(e Expr_Binary) any {
-	left := i.evaluate(e.left)
-	right := i.evaluate(e.right)
+func (i *Interpreter) VisitExpr_Binary(e ast.Expr_Binary) any {
+	left := i.evaluate(e.Left)
+	right := i.evaluate(e.Right)
 
-	switch e.operator.ttype {
-	case MINUS:
-		i.checkNumberOperand(e.operator, right)
+	switch e.Operator.TokenType {
+	case ast.MINUS:
+		i.checkNumberOperand(e.Operator, right)
 		return castToFloat(left) - castToFloat(right)
-	case PLUS:
+	case ast.PLUS:
 		if valLeft, okLeft := left.(float64); okLeft {
 			if valRight, okRight := right.(float64); okRight {
 				return valLeft + valRight
@@ -50,33 +55,33 @@ func (i *Interpreter) visitExpr_Binary(e Expr_Binary) any {
 				return valLeft + valRight
 			}
 		}
-		err := NewRuntimeError(e.operator, "Operands must be two numbers or two strings.")
+		err := NewRuntimeError(e.Operator, "Operands must be two numbers or two strings.")
 		// Print the error message.
 		fmt.Println(err.Error())
 
-	case SLASH:
-		i.checkNumberOperands(e.operator, left, right)
+	case ast.SLASH:
+		i.checkNumberOperands(e.Operator, left, right)
 		return castToFloat(left) / castToFloat(right)
-	case STAR:
-		i.checkNumberOperands(e.operator, left, right)
+	case ast.STAR:
+		i.checkNumberOperands(e.Operator, left, right)
 		return castToFloat(left) * castToFloat(right)
-	case GREATER:
-		i.checkNumberOperands(e.operator, left, right)
+	case ast.GREATER:
+		i.checkNumberOperands(e.Operator, left, right)
 		return castToFloat(left) > castToFloat(right)
-	case GREATER_EQUAL:
-		i.checkNumberOperands(e.operator, left, right)
+	case ast.GREATER_EQUAL:
+		i.checkNumberOperands(e.Operator, left, right)
 		return castToFloat(left) >= castToFloat(right)
-	case LESS:
-		i.checkNumberOperands(e.operator, left, right)
+	case ast.LESS:
+		i.checkNumberOperands(e.Operator, left, right)
 		return castToFloat(left) < castToFloat(right)
-	case LESS_EQUAL:
-		i.checkNumberOperands(e.operator, left, right)
+	case ast.LESS_EQUAL:
+		i.checkNumberOperands(e.Operator, left, right)
 		return castToFloat(left) <= castToFloat(right)
-	case BANG_EQUAL:
-		i.checkNumberOperands(e.operator, left, right)
+	case ast.BANG_EQUAL:
+		i.checkNumberOperands(e.Operator, left, right)
 		return !isEqual(left, right)
-	case EQUAL_EQUAL:
-		i.checkNumberOperands(e.operator, left, right)
+	case ast.EQUAL_EQUAL:
+		i.checkNumberOperands(e.Operator, left, right)
 		return isEqual(left, right)
 	default:
 		return nil
@@ -84,10 +89,10 @@ func (i *Interpreter) visitExpr_Binary(e Expr_Binary) any {
 	return nil
 }
 
-func (i *Interpreter) visitExpr_Call(e Expr_Call) any {
-	callee := i.evaluate(e.callee)
+func (i *Interpreter) VisitExpr_Call(e ast.Expr_Call) any {
+	callee := i.evaluate(e.Callee)
 	arguments := []any{}
-	for _, argument := range e.arguments {
+	for _, argument := range e.Arguments {
 		arguments = append(arguments, argument)
 	}
 
@@ -101,27 +106,27 @@ func (i *Interpreter) visitExpr_Call(e Expr_Call) any {
 	return nil
 }
 
-func (i *Interpreter) visitExpr_Grouping(e Expr_Grouping) any {
-	return i.evaluate(e.expression)
+func (i *Interpreter) VisitExpr_Grouping(e ast.Expr_Grouping) any {
+	return i.evaluate(e.Expression)
 }
 
-func (i *Interpreter) visitExpr_Literal(e Expr_Literal) any {
-	return e.value
+func (i *Interpreter) VisitExpr_Literal(e ast.Expr_Literal) any {
+	return e.Value
 }
 
-func (i *Interpreter) visitExpr_Unary(e Expr_Unary) any {
-	right := i.evaluate(e.right)
-	switch e.operator.ttype {
-	case BANG:
+func (i *Interpreter) VisitExpr_Unary(e ast.Expr_Unary) any {
+	right := i.evaluate(e.Right)
+	switch e.Operator.TokenType {
+	case ast.BANG:
 		return !isTruthy(right)
-	case MINUS:
+	case ast.MINUS:
 		return -castToFloat(right)
 	default:
 		return nil
 	}
 }
 
-func (i *Interpreter) checkNumberOperand(operator Token, operand any) {
+func (i *Interpreter) checkNumberOperand(operator ast.Token, operand any) {
 	if _, ok := operand.(float64); ok {
 		return
 	}
@@ -131,7 +136,7 @@ func (i *Interpreter) checkNumberOperand(operator Token, operand any) {
 
 }
 
-func (i *Interpreter) checkNumberOperands(operator Token, left any, right any) {
+func (i *Interpreter) checkNumberOperands(operator ast.Token, left any, right any) {
 	if _, ok := left.(float64); ok {
 		if _, ok := right.(float64); ok {
 			return
@@ -163,24 +168,28 @@ func (i *Interpreter) checkNumberOperands(operator Token, left any, right any) {
 // 	return "nil"
 // }
 
-func (i *Interpreter) evaluate(expr Expr) any {
-	return expr.accept(i)
+func (i *Interpreter) evaluate(expr ast.Expr) any {
+	return expr.Accept(i)
 }
 
-func (i *Interpreter) execute(stmt Stmt) {
+func (i *Interpreter) execute(stmt ast.Stmt) {
 	if stmt == nil {
 		panic("nil statement at execute()")
 	}
-	stmt.accept(i)
+	stmt.Accept(i)
 }
 
-func (i *Interpreter) visitStmt_Block(stmt Stmt_Block) {
+func (i *Interpreter) resolve(expr ast.Expr, depth int) {
+	i.locals[expr] = depth
+}
+
+func (i *Interpreter) VisitStmt_Block(stmt ast.Stmt_Block) {
 	enclosing_env := i.environment
 	new_env := NewEnvironmentWithEnclosing(&enclosing_env)
-	i.executeBlock(stmt.statements, &new_env)
+	i.executeBlock(stmt.Statements, &new_env)
 }
 
-func (i *Interpreter) executeBlock(statements []Stmt, environment *Environment) {
+func (i *Interpreter) executeBlock(statements []ast.Stmt, environment *Environment) {
 	previous := i.environment
 	i.environment = *environment
 	defer func() { i.environment = previous }()
@@ -192,64 +201,78 @@ func (i *Interpreter) executeBlock(statements []Stmt, environment *Environment) 
 	}
 }
 
-func (i *Interpreter) visitStmt_Expression(stmt Stmt_Expression) {
-	i.evaluate(stmt.expression)
+func (i *Interpreter) VisitStmt_Expression(stmt ast.Stmt_Expression) {
+	i.evaluate(stmt.Expression)
 }
 
-func (i *Interpreter) visitStmt_Function(stmt Stmt_Function) {
+func (i *Interpreter) VisitStmt_Function(stmt ast.Stmt_Function) {
 	function := LoxFunction{stmt, i.environment}
-	i.environment.define(stmt.name.lexeme, function)
+	i.environment.define(stmt.Name.Lexeme, function)
 }
 
-func (i *Interpreter) visitStmt_If(stmt Stmt_If) {
-	if isTruthy(i.evaluate(stmt.condition)) {
-		i.execute(stmt.thenBranch)
-	} else if stmt.elseBranch != nil {
-		i.execute(stmt.elseBranch)
+func (i *Interpreter) VisitStmt_If(stmt ast.Stmt_If) {
+	if isTruthy(i.evaluate(stmt.Condition)) {
+		i.execute(stmt.ThenBranch)
+	} else if stmt.ElseBranch != nil {
+		i.execute(stmt.ElseBranch)
 	}
 }
 
-func (i *Interpreter) visitStmt_Print(stmt Stmt_Print) {
-	value := i.evaluate(stmt.expression)
+func (i *Interpreter) VisitStmt_Print(stmt ast.Stmt_Print) {
+	value := i.evaluate(stmt.Expression)
 	fmt.Println(value)
 }
 
-func (i *Interpreter) visitStmt_Return(stmt Stmt_Return) {
+func (i *Interpreter) VisitStmt_Return(stmt ast.Stmt_Return) {
 	var value any
-	if stmt.value != nil {
-		value = i.evaluate(stmt.value)
+	if stmt.Value != nil {
+		value = i.evaluate(stmt.Value)
 	}
 	panic(Return{value})
 }
 
-func (i *Interpreter) visitStmt_While(stmt Stmt_While) {
-	for isTruthy(i.evaluate(stmt.condition)) {
-		i.execute(stmt.body)
+func (i *Interpreter) VisitStmt_While(stmt ast.Stmt_While) {
+	for isTruthy(i.evaluate(stmt.Condition)) {
+		i.execute(stmt.Body)
 	}
 }
 
-func (i *Interpreter) visitStmt_Var(stmt Stmt_Var) {
+func (i *Interpreter) VisitStmt_Var(stmt ast.Stmt_Var) {
 	var value any
-	if stmt.initializer != nil {
-		value = i.evaluate(stmt.initializer)
+	if stmt.Initializer != nil {
+		value = i.evaluate(stmt.Initializer)
 	}
-	i.environment.define(stmt.name.lexeme, value)
+	i.environment.define(stmt.Name.Lexeme, value)
 }
 
-func (i *Interpreter) visitExpr_Assign(expr Expr_Assign) any {
-	value := i.evaluate(expr.value)
-	i.environment.assign(expr.name, value)
+func (i *Interpreter) VisitExpr_Assign(expr ast.Expr_Assign) any {
+	value := i.evaluate(expr.Value)
+
+	if distance, ok := i.locals[expr]; ok {
+		i.environment.assignAt(distance, expr.Name, value)
+	} else {
+		i.environment.assign(expr.Name, value)
+	}
+
 	return value
 }
 
-func (i *Interpreter) visitExpr_Variable(expr Expr_Variable) any {
-	return i.environment.get(expr.name)
+func (i *Interpreter) VisitExpr_Variable(expr ast.Expr_Variable) any {
+	return i.lookUpVariable(expr.Name, expr)
 }
 
-func (i *Interpreter) visitExpr_Logical(expr Expr_Logical) any {
-	left := i.evaluate(expr.left)
+func (i *Interpreter) lookUpVariable(name ast.Token, expr ast.Expr) any {
+	if distance, ok := i.locals[expr]; ok {
+		return i.environment.getAt(distance, name.Lexeme)
+	} else {
+		return i.globals.get(name)
+	}
+}
 
-	if expr.operator.ttype == OR {
+func (i *Interpreter) VisitExpr_Logical(expr ast.Expr_Logical) any {
+	left := i.evaluate(expr.Left)
+
+	if expr.Operator.TokenType == ast.OR {
 		if isTruthy(left) {
 			return left
 		} else {
@@ -258,5 +281,5 @@ func (i *Interpreter) visitExpr_Logical(expr Expr_Logical) any {
 			}
 		}
 	}
-	return i.evaluate(expr.right)
+	return i.evaluate(expr.Right)
 }

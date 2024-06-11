@@ -1,3 +1,14 @@
+var a = "global";
+{
+  fun showA() {
+    print a;
+  }
+
+  showA();
+  var a = "block";
+  showA();
+}
+
 fun count(n) {
   while (n < 100) {
     if (n == 3) return n; // <--
@@ -6,5 +17,6 @@ fun count(n) {
   }
 }
 
+print "hehe";
 var result = count(1);
 print result;

@@ -3,47 +3,53 @@ package main
 import (
 	"strconv"
 	"unicode"
+
+	"github.com/kljablon/golox/ast"
 )
 
 type Scanner struct {
 	source   string
-	tokens   []Token
+	tokens   []ast.Token
 	start    int
 	current  int
 	line     int
-	keywords map[string]TokenType
+	keywords map[string]ast.TokenType
 }
 
 func NewScanner(source string) Scanner {
 
-	keywords := map[string]TokenType{
-		"and":    AND,
-		"class":  CLASS,
-		"else":   ELSE,
-		"false":  FALSE,
-		"for":    FOR,
-		"fun":    FUN,
-		"if":     IF,
-		"nil":    NIL,
-		"or":     OR,
-		"print":  PRINT,
-		"return": RETURN,
-		"super":  SUPER,
-		"this":   THIS,
-		"true":   TRUE,
-		"var":    VAR,
-		"while":  WHILE,
+	keywords := map[string]ast.TokenType{
+		"and":    ast.AND,
+		"class":  ast.CLASS,
+		"else":   ast.ELSE,
+		"false":  ast.FALSE,
+		"for":    ast.FOR,
+		"fun":    ast.FUN,
+		"if":     ast.IF,
+		"nil":    ast.NIL,
+		"or":     ast.OR,
+		"print":  ast.PRINT,
+		"return": ast.RETURN,
+		"super":  ast.SUPER,
+		"this":   ast.THIS,
+		"true":   ast.TRUE,
+		"var":    ast.VAR,
+		"while":  ast.WHILE,
 	}
 
-	return Scanner{source, make([]Token, 0), 0, 0, 1, keywords}
+	return Scanner{source, make([]ast.Token, 0), 0, 0, 1, keywords}
 }
 
-func (s *Scanner) ScanTokens() []Token {
+func (s *Scanner) ScanTokens() []ast.Token {
 	for !s.isAtEnd() {
 		s.start = s.current
 		s.scanToken()
 	}
-	s.tokens = append(s.tokens, Token{EOF, "", nil, s.line})
+	s.tokens = append(s.tokens, ast.Token{
+		TokenType: ast.EOF,
+		Lexeme:    "",
+		Literal:   nil,
+		Line:      s.line})
 	return s.tokens
 }
 
@@ -55,48 +61,48 @@ func (s *Scanner) scanToken() {
 	character := s.advance()
 	switch character {
 	case '(':
-		s.addToken(LEFT_PAREN, nil)
+		s.addToken(ast.LEFT_PAREN, nil)
 	case ')':
-		s.addToken(RIGHT_PAREN, nil)
+		s.addToken(ast.RIGHT_PAREN, nil)
 	case '{':
-		s.addToken(LEFT_BRACE, nil)
+		s.addToken(ast.LEFT_BRACE, nil)
 	case '}':
-		s.addToken(RIGHT_BRACE, nil)
+		s.addToken(ast.RIGHT_BRACE, nil)
 	case ',':
-		s.addToken(COMMA, nil)
+		s.addToken(ast.COMMA, nil)
 	case '.':
-		s.addToken(DOT, nil)
+		s.addToken(ast.DOT, nil)
 	case '-':
-		s.addToken(MINUS, nil)
+		s.addToken(ast.MINUS, nil)
 	case '+':
-		s.addToken(PLUS, nil)
+		s.addToken(ast.PLUS, nil)
 	case ';':
-		s.addToken(SEMICOLON, nil)
+		s.addToken(ast.SEMICOLON, nil)
 	case '*':
-		s.addToken(STAR, nil)
+		s.addToken(ast.STAR, nil)
 	case '!':
 		if s.match('=') {
-			s.addToken(BANG_EQUAL, nil)
+			s.addToken(ast.BANG_EQUAL, nil)
 		} else {
-			s.addToken(BANG, nil)
+			s.addToken(ast.BANG, nil)
 		}
 	case '=':
 		if s.match('=') {
-			s.addToken(EQUAL_EQUAL, nil)
+			s.addToken(ast.EQUAL_EQUAL, nil)
 		} else {
-			s.addToken(EQUAL, nil)
+			s.addToken(ast.EQUAL, nil)
 		}
 	case '<':
 		if s.match('=') {
-			s.addToken(LESS_EQUAL, nil)
+			s.addToken(ast.LESS_EQUAL, nil)
 		} else {
-			s.addToken(LESS, nil)
+			s.addToken(ast.LESS, nil)
 		}
 	case '>':
 		if s.match('=') {
-			s.addToken(GREATER_EQUAL, nil)
+			s.addToken(ast.GREATER_EQUAL, nil)
 		} else {
-			s.addToken(GREATER, nil)
+			s.addToken(ast.GREATER, nil)
 		}
 	case '/':
 		if s.match('/') {
@@ -115,7 +121,7 @@ func (s *Scanner) scanToken() {
 			s.advance()
 			s.advance()
 		} else {
-			s.addToken(SLASH, nil)
+			s.addToken(ast.SLASH, nil)
 		}
 	case ' ':
 	case '\r':
@@ -138,9 +144,9 @@ func (s *Scanner) scanToken() {
 	}
 }
 
-func (s *Scanner) addToken(ttype TokenType, literal interface{}) {
+func (s *Scanner) addToken(ttype ast.TokenType, literal interface{}) {
 	text := s.source[s.start:s.current]
-	s.tokens = append(s.tokens, Token{ttype, text, literal, s.line})
+	s.tokens = append(s.tokens, ast.Token{TokenType: ttype, Lexeme: text, Literal: literal, Line: s.line})
 }
 
 func (s *Scanner) match(expected rune) bool {
@@ -192,7 +198,7 @@ func (s *Scanner) stringLit() {
 
 	// Extract the string value
 	value := s.source[s.start+1 : s.current-1]
-	s.addToken(STRING, value)
+	s.addToken(ast.STRING, value)
 }
 
 func (s *Scanner) number() {
@@ -209,7 +215,7 @@ func (s *Scanner) number() {
 	if err != nil {
 		ReportError(s.line, err.Error())
 	}
-	s.addToken(NUMBER, v)
+	s.addToken(ast.NUMBER, v)
 }
 
 func (s *Scanner) identifier() {
@@ -217,9 +223,9 @@ func (s *Scanner) identifier() {
 		s.advance()
 	}
 	text := s.source[s.start:s.current]
-	type_, ok := s.keywords[text]
+	ttype, ok := s.keywords[text]
 	if !ok {
-		type_ = IDENTIFIER
+		ttype = ast.IDENTIFIER
 	}
-	s.addToken(type_, nil)
+	s.addToken(ttype, nil)
 }

@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+
+	"github.com/kljablon/golox/ast"
 )
 
 type Environment struct {
@@ -29,23 +31,43 @@ func (e *Environment) define(name string, value any) {
 	e.values[name] = value
 }
 
-func (e *Environment) get(name Token) any {
-	if v, ok := e.values[name.lexeme]; ok {
+func (e *Environment) ancestor(distance int) Environment {
+	environment := *e
+	for i := 0; i < distance; i++ {
+		environment = *environment.enclosing
+	}
+	return environment
+}
+
+func (e *Environment) getAt(distance int, name string) any {
+	if value, ok := e.ancestor(distance).values[name]; ok {
+		return value
+	} else {
+		return nil
+	}
+}
+
+func (e *Environment) assignAt(distance int, name ast.Token, value any) {
+	e.ancestor(distance).values[name.Lexeme] = value
+}
+
+func (e *Environment) get(name ast.Token) any {
+	if v, ok := e.values[name.Lexeme]; ok {
 		return v
 	}
 	if e.enclosing != nil && e.enclosing != e {
 		return e.enclosing.get(name)
 	}
 
-	err := NewRuntimeError(name, "Undefined variable '"+name.lexeme+"'.")
+	err := NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'.")
 	// Print the error message.
 	log.Fatal(err.Error())
 	return nil // This return is not necessary because log.Fatal exits the program, but added for clarity.
 }
 
-func (e *Environment) assign(name Token, value any) {
-	if _, ok := e.values[name.lexeme]; ok {
-		e.values[name.lexeme] = value
+func (e *Environment) assign(name ast.Token, value any) {
+	if _, ok := e.values[name.Lexeme]; ok {
+		e.values[name.Lexeme] = value
 		return
 	}
 
@@ -54,7 +76,7 @@ func (e *Environment) assign(name Token, value any) {
 		return
 	}
 
-	err := NewRuntimeError(name, "Undefined variable '"+name.lexeme+"'.")
+	err := NewRuntimeError(name, "Undefined variable '"+name.Lexeme+"'.")
 	// Print the error message.
 	log.Fatal(err.Error())
 }

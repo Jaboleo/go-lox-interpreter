@@ -1,54 +1,58 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/kljablon/golox/ast"
+)
 
 type AstPrinter struct{}
 
-func (a *AstPrinter) visitExpr_Binary(expr Expr_Binary) any {
-	return a.parenthesize(expr.operator.lexeme, expr.left, expr.right)
+func (a *AstPrinter) VisitExpr_Binary(expr ast.Expr_Binary) any {
+	return a.parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right)
 }
 
-func (a *AstPrinter) visitExpr_Grouping(expr Expr_Grouping) any {
-	return a.parenthesize("group", expr.expression)
+func (a *AstPrinter) VisitExpr_Grouping(expr ast.Expr_Grouping) any {
+	return a.parenthesize("group", expr.Expression)
 }
 
-func (a *AstPrinter) visitExpr_Assign(expr Expr_Assign) any {
+func (a *AstPrinter) VisitExpr_Assign(expr ast.Expr_Assign) any {
 	// return a.parenthesize("assign", expr.name)
 	return nil
 }
 
-func (a *AstPrinter) visitExpr_Variable(expr Expr_Variable) any {
+func (a *AstPrinter) VisitExpr_Variable(expr ast.Expr_Variable) any {
 	// return a.parenthesize("variable", expr.name)
 	return nil
 }
 
-func (a *AstPrinter) visitExpr_Literal(expr Expr_Literal) any {
-	if expr.value == nil {
+func (a *AstPrinter) VisitExpr_Literal(expr ast.Expr_Literal) any {
+	if expr.Value == nil {
 		return "nil"
 	}
-	return fmt.Sprintf("%v", expr.value)
+	return fmt.Sprintf("%v", expr.Value)
 }
 
-func (a *AstPrinter) visitExpr_Unary(expr Expr_Unary) any {
-	return a.parenthesize(expr.operator.lexeme, expr.right)
+func (a *AstPrinter) VisitExpr_Unary(expr ast.Expr_Unary) any {
+	return a.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
 
-func (a *AstPrinter) visitExpr_Logical(expr Expr_Logical) any {
-	return a.parenthesize(expr.operator.lexeme, expr.right)
+func (a *AstPrinter) VisitExpr_Logical(expr ast.Expr_Logical) any {
+	return a.parenthesize(expr.Operator.Lexeme, expr.Right)
 }
 
-func (a *AstPrinter) visitExpr_Call(expr Expr_Call) any {
-	return a.parenthesize("", expr.callee)
+func (a *AstPrinter) VisitExpr_Call(expr ast.Expr_Call) any {
+	return a.parenthesize("", expr.Callee)
 }
 
-func (a *AstPrinter) Print(expr Expr) string {
-	return expr.accept(a).(string)
+func (a *AstPrinter) Print(expr ast.Expr) string {
+	return expr.Accept(a).(string)
 }
 
-func (a *AstPrinter) parenthesize(name string, exprs ...Expr) string {
+func (a *AstPrinter) parenthesize(name string, exprs ...ast.Expr) string {
 	builder := "(" + name
 	for _, v := range exprs {
-		builder += " " + v.accept(a).(string)
+		builder += " " + v.Accept(a).(string)
 	}
 	builder += ")"
 	return builder

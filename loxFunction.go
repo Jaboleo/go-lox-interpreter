@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/kljablon/golox/ast"
+)
 
 type LoxCallable interface {
 	arity() int
@@ -8,17 +12,17 @@ type LoxCallable interface {
 }
 
 type LoxFunction struct {
-	declaration Stmt_Function
+	declaration ast.Stmt_Function
 	closure     Environment
 }
 
 func (l *LoxFunction) call(interpreter Interpreter, arguments []any) (result any) {
 	environment := NewEnvironmentWithEnclosing(&l.closure)
-	for i, _ := range l.declaration.params {
-		if arg, ok := arguments[i].(Expr); ok {
+	for i, _ := range l.declaration.Params {
+		if arg, ok := arguments[i].(ast.Expr); ok {
 			arguments[i] = interpreter.evaluate(arg)
 		}
-		environment.define(l.declaration.params[i].lexeme, arguments[i])
+		environment.define(l.declaration.Params[i].Lexeme, arguments[i])
 	}
 
 	defer func() {
@@ -29,14 +33,14 @@ func (l *LoxFunction) call(interpreter Interpreter, arguments []any) (result any
 		}
 	}()
 
-	interpreter.executeBlock(l.declaration.body, &environment)
+	interpreter.executeBlock(l.declaration.Body, &environment)
 	return result
 }
 
 func (l *LoxFunction) arity() int {
-	return len(l.declaration.params)
+	return len(l.declaration.Params)
 }
 
 func (l *LoxFunction) toString() string {
-	return fmt.Sprintf("<fn %w >", l.declaration.name.lexeme)
+	return fmt.Sprintf("<fn %w >", l.declaration.Name.Lexeme)
 }

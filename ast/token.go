@@ -1,16 +1,16 @@
-package main
+package ast
 
 import "fmt"
 
 type Token struct {
-	ttype   TokenType
-	lexeme  string
-	literal interface{}
-	line    int
+	TokenType TokenType
+	Lexeme    string
+	Literal   any
+	Line      int
 }
 
 func (t Token) ToString() string {
-	return fmt.Sprintf("TYPE: %s, LITERAL: %v", getTokenName(t.ttype), t.literal)
+	return fmt.Sprintf("TYPE: %s, LITERAL: %v", getTokenName(t.TokenType), t.Literal)
 }
 
 var tokenNames = []string{

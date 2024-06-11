@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/kljablon/golox/ast"
 )
 
 var hadError bool = false
@@ -24,6 +26,9 @@ func run(source string) {
 		os.Exit(70)
 	}
 
+	resolver := newResover()
+	resolver.resolveStmts(statements)
+
 	// printer := AstPrinter{}
 	// fmt.Println(printer.Print(expression))
 	interpreter.interpret(statements)
@@ -38,16 +43,16 @@ func report(line int, where string, message string) {
 	hadError = true
 }
 
-func loxError(token Token, message string) {
-	if token.ttype == EOF {
-		report(token.line, " at end", message)
+func loxError(token ast.Token, message string) {
+	if token.TokenType == ast.EOF {
+		report(token.Line, " at end", message)
 	} else {
-		report(token.line, " at '"+token.lexeme+"'", message)
+		report(token.Line, " at '"+token.Lexeme+"'", message)
 	}
 }
 
 func runtimeError(err RuntimeError) {
-	fmt.Printf(err.message + "\n[line" + fmt.Sprintf("%f", err.token.line) + "]")
+	fmt.Printf(err.message + "\n[line" + fmt.Sprintf("%f", err.token.Line) + "]")
 	hadRuntimeError = true
 }
 
