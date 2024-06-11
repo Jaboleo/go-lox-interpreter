@@ -1,4 +1,4 @@
-package main
+package resolve
 
 import (
 	"errors"
@@ -22,7 +22,7 @@ const (
 	FUNCTION
 )
 
-func newResover() Resolver {
+func NewResover() Resolver {
 	interpreter := interpret.NewInterpreter()
 	scopes := []map[string]bool{}
 	return Resolver{
@@ -32,7 +32,7 @@ func newResover() Resolver {
 
 func (r *Resolver) VisitStmt_Block(stmt ast.Stmt_Block) {
 	r.beginScope()
-	r.resolveStmts(stmt.Statements)
+	r.ResolveStmts(stmt.Statements)
 	r.endScope()
 }
 
@@ -136,7 +136,7 @@ func (r *Resolver) VisitExpr_Variable(expr ast.Expr_Variable) any {
 	return nil
 }
 
-func (r *Resolver) resolveStmts(statements []ast.Stmt) {
+func (r *Resolver) ResolveStmts(statements []ast.Stmt) {
 	for _, statement := range statements {
 		r.resolveStmt(statement)
 	}
@@ -158,7 +158,7 @@ func (r *Resolver) resolveFunction(function ast.Stmt_Function, f_type FunctionTy
 		r.declare(param)
 		r.define(param)
 	}
-	r.resolveStmts(function.Body)
+	r.ResolveStmts(function.Body)
 	r.endScope()
 	r.currentFunction = enclosingFunction
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/kljablon/golox/ast"
 	"github.com/kljablon/golox/interpret"
 	"github.com/kljablon/golox/parse"
+	"github.com/kljablon/golox/resolve"
 	"github.com/kljablon/golox/utils"
 )
 
@@ -29,8 +30,8 @@ func run(source string) {
 		os.Exit(70)
 	}
 
-	resolver := newResover()
-	resolver.resolveStmts(statements)
+	resolver := resolve.NewResover()
+	resolver.ResolveStmts(statements)
 
 	// printer := AstPrinter{}
 	// fmt.Println(printer.Print(expression))
