@@ -365,7 +365,7 @@ func (p *Parser) function(kind string) ast.Stmt_Function {
 		}
 	}
 	p.consume(ast.RIGHT_PAREN, "Expect ')' after parameters.")
-	p.consume(ast.LEFT_BRACE, fmt.Sprintf("Expect { before %w body.", kind))
+	p.consume(ast.LEFT_BRACE, fmt.Sprintf("Expect { before %s body.", kind))
 	body := p.block()
 	return ast.Stmt_Function{Name: *name, Params: parameters, Body: body}
 }

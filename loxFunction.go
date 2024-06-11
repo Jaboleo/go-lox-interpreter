@@ -42,5 +42,5 @@ func (l *LoxFunction) arity() int {
 }
 
 func (l *LoxFunction) toString() string {
-	return fmt.Sprintf("<fn %w >", l.declaration.Name.Lexeme)
+	return fmt.Sprintf("<fn %s >", l.declaration.Name.Lexeme)
 }

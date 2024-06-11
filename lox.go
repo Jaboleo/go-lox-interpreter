@@ -52,7 +52,7 @@ func loxError(token ast.Token, message string) {
 }
 
 func runtimeError(err RuntimeError) {
-	fmt.Printf(err.message + "\n[line" + fmt.Sprintf("%f", err.token.Line) + "]")
+	fmt.Printf(err.message + "\n[line" + fmt.Sprintf("%d", err.token.Line) + "]")
 	hadRuntimeError = true
 }
 
