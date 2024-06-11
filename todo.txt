@@ -1,3 +1,5 @@
-- Przetestować obsługę błędów
-- Dodać testy jednostkowe (np. na Epxressions, Statements)
-- Potworzyć osobne paczki na scanner + parser itp.
+[] Przetestować obsługę błędów
+[] Dodać testy jednostkowe (np. na Epxressions, Statements)
+
+
+[x] Potworzyć osobne paczki na scanner + parser itp.

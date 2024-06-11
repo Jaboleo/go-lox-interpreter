@@ -8,6 +8,7 @@ import (
 
 	"github.com/kljablon/golox/ast"
 	"github.com/kljablon/golox/interpret"
+	"github.com/kljablon/golox/parse"
 	"github.com/kljablon/golox/utils"
 )
 
@@ -15,9 +16,9 @@ var hadError bool = false
 var hadRuntimeError bool = false
 
 func run(source string) {
-	scanner := NewScanner(source)
+	scanner := parse.NewScanner(source)
 	tokens := scanner.ScanTokens()
-	parser := NewParser(tokens)
+	parser := parse.NewParser(tokens)
 	statements := parser.Parse()
 	interpreter := interpret.NewInterpreter()
 

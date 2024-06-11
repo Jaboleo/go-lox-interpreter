@@ -1,4 +1,4 @@
-package main
+package parse
 
 import (
 	"fmt"
@@ -224,7 +224,8 @@ func (p ParseError) Error() string {
 }
 
 func (p *Parser) pError(token ast.Token, message string) error {
-	loxError(token, message)
+	log.Fatal(token, message)
+	// loxError(token, message)
 	return ParseError{message}
 }
 
@@ -245,7 +246,7 @@ func (p *Parser) statement() ast.Stmt {
 		return p.whileStatement()
 	}
 	if p.match(ast.LEFT_BRACE) {
-		return ast.Stmt_Block{p.block()}
+		return ast.Stmt_Block{Statements: p.block()}
 	}
 	return p.expressionStatement()
 }
@@ -270,7 +271,7 @@ func (p *Parser) ifStatement() ast.Stmt_If {
 func (p *Parser) printStatement() ast.Stmt_Print {
 	value := p.expression()
 	p.consume(ast.SEMICOLON, "Expect ';' after value.")
-	return ast.Stmt_Print{value}
+	return ast.Stmt_Print{Expression: value}
 }
 
 func (p *Parser) returnStatement() ast.Stmt_Return {
@@ -280,7 +281,7 @@ func (p *Parser) returnStatement() ast.Stmt_Return {
 		value = p.expression()
 	}
 	p.consume(ast.SEMICOLON, "Expect ';' after return value.")
-	return ast.Stmt_Return{keyword, value}
+	return ast.Stmt_Return{Keyword: keyword, Value: value}
 }
 
 func (p *Parser) whileStatement() ast.Stmt_While {
@@ -289,7 +290,7 @@ func (p *Parser) whileStatement() ast.Stmt_While {
 	p.consume(ast.RIGHT_PAREN, "Expect ')' after condition.")
 	body := p.statement()
 
-	return ast.Stmt_While{condition, body}
+	return ast.Stmt_While{Condition: condition, Body: body}
 }
 
 func (p *Parser) forStatement() ast.Stmt {
@@ -318,7 +319,7 @@ func (p *Parser) forStatement() ast.Stmt {
 	body := p.statement()
 	if increment != nil {
 		body = ast.Stmt_Block{
-			Statements: []ast.Stmt{body, ast.Stmt_Expression{increment}},
+			Statements: []ast.Stmt{body, ast.Stmt_Expression{Expression: increment}},
 		}
 	}
 

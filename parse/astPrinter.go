@@ -1,4 +1,4 @@
-package main
+package parse
 
 import (
 	"fmt"
@@ -17,12 +17,11 @@ func (a *AstPrinter) VisitExpr_Grouping(expr ast.Expr_Grouping) any {
 }
 
 func (a *AstPrinter) VisitExpr_Assign(expr ast.Expr_Assign) any {
-	// return a.parenthesize("assign", expr.name)
-	return nil
+	return a.parenthesize("assign", expr.Value)
 }
 
 func (a *AstPrinter) VisitExpr_Variable(expr ast.Expr_Variable) any {
-	// return a.parenthesize("variable", expr.name)
+	// return a.parenthesize("variable", expr.Name)
 	return nil
 }
 

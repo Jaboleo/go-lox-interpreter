@@ -1,6 +1,7 @@
-package main
+package parse
 
 import (
+	"log"
 	"strconv"
 	"unicode"
 
@@ -138,7 +139,8 @@ func (s *Scanner) scanToken() {
 		} else if unicode.IsLetter(character) || unicode.IsDigit(character) {
 			s.identifier()
 		} else {
-			ReportError(s.line, "Unexpected character.")
+			log.Fatal(s.line, "Unexpected character.")
+			// utils.ReportError(s.line, "Unexpected character.")
 		}
 
 	}
@@ -191,7 +193,8 @@ func (s *Scanner) stringLit() {
 		s.advance()
 	}
 	if s.isAtEnd() {
-		ReportError(s.line, "Unterminated string.")
+		log.Fatal(s.line, "Unterminated string.")
+		// utils.ReportError(s.line, "Unterminated string.")
 		return
 	}
 	s.advance()
@@ -213,7 +216,8 @@ func (s *Scanner) number() {
 	}
 	v, err := strconv.ParseFloat(s.source[s.start:s.current], 32)
 	if err != nil {
-		ReportError(s.line, err.Error())
+		log.Fatal(s.line, err.Error())
+		// utils.ReportError(s.line, err.Error())
 	}
 	s.addToken(ast.NUMBER, v)
 }

@@ -21,6 +21,7 @@ type Interpreter struct {
 func NewInterpreter() Interpreter {
 	globals := NewEnvironment()
 
+	// add native functions to global env
 	globals.define("clock", ClockFunc{})
 
 	locals := make(map[ast.Expr]int)
